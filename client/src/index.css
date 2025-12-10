@@ -1,0 +1,273 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply box-border;
+  }
+
+  body {
+    @apply bg-netflix-black text-white font-sans antialiased;
+    margin: 0;
+    padding: 0;
+  }
+
+  #root {
+    @apply min-h-screen;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-netflix-red hover:bg-netflix-darkRed text-white font-semibold py-2 px-6 rounded transition-all duration-200;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-6 rounded transition-all duration-200;
+  }
+
+  .input-field {
+    @apply w-full bg-netflix-darkGray border border-netflix-gray text-white rounded px-4 py-3 focus:outline-none focus:border-white transition-colors;
+  }
+
+  .movie-card {
+    @apply relative overflow-hidden rounded-md cursor-pointer transition-transform duration-300 hover:scale-105 hover:z-10;
+  }
+
+  .skeleton {
+    @apply animate-pulse bg-netflix-gray rounded;
+  }
+
+  /* Scrollbar styles */
+  .custom-scrollbar::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-netflix-darkGray;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-netflix-gray rounded-full hover:bg-netflix-lightGray;
+  }
+}
+
+@layer utilities {
+  .text-shadow {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  }
+
+  .gradient-overlay {
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, transparent 100%);
+  }
+
+  .gradient-overlay-right {
+    background: linear-gradient(to right, rgba(20, 20, 20, 1) 0%, transparent 100%);
+  }
+}
+
+/* Video.js custom styling */
+.video-js {
+  width: 100%;
+  height: 100%;
+}
+
+.video-js .vjs-control-bar {
+  @apply bg-gradient-to-t from-black/90 to-transparent;
+}
+
+/* Loading spinner */
+.spinner {
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #E50914;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Movie Poster Background Styles */
+.movie-poster-background {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.poster-grid {
+  display: flex;
+  gap: 12px;
+  height: 100%;
+  padding: 0 12px;
+  transform: rotate(-12deg) scale(1.5);
+  transform-origin: center center;
+}
+
+.poster-column {
+  flex: 1;
+  overflow: hidden;
+  height: 200%;
+  position: relative;
+}
+
+.poster-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.poster-scroll.scroll-up {
+  animation-name: scrollUp;
+}
+
+.poster-scroll.scroll-down {
+  animation-name: scrollDown;
+}
+
+@keyframes scrollUp {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+@keyframes scrollDown {
+  0% {
+    transform: translateY(-50%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.poster-item {
+  flex-shrink: 0;
+  width: 100%;
+  aspect-ratio: 2/3;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+.poster-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.poster-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 1;
+}
+
+/* Trending Card Styles */
+.trending-card {
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.trending-card:hover {
+  transform: scale(1.05);
+}
+
+.trending-rank {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 60px;
+  margin-right: -20px;
+  z-index: 0;
+}
+
+.trending-number {
+  font-size: 140px;
+  font-weight: 900;
+  line-height: 0.8;
+  color: #141414;
+  -webkit-text-stroke: 4px #404040;
+  text-stroke: 4px #404040;
+  font-family: 'Arial Black', sans-serif;
+}
+
+/* Hero slow zoom animation */
+@keyframes slowZoom {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.1);
+  }
+}
+
+.animate-slow-zoom {
+  animation: slowZoom 10s ease-out forwards;
+}
+
+/* Continue Watching Progress Bar */
+.progress-bar-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #e50914, #ff6b35);
+  transition: width 0.3s ease;
+}
+
+/* Genre tag styles */
+.genre-tag {
+  background: linear-gradient(135deg, rgba(229, 9, 20, 0.8), rgba(229, 9, 20, 0.4));
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Glassmorphism card effect */
+.glass-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+}
+
+/* Shimmer animation for loading */
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(to right, #1a1a1a 0%, #2a2a2a 20%, #1a1a1a 40%, #1a1a1a 100%);
+  background-size: 800px 104px;
+  animation: shimmer 1.5s infinite linear;
+}
+
