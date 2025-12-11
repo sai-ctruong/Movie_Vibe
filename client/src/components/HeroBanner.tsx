@@ -64,8 +64,8 @@ export default function HeroBanner({ movies }: HeroBannerProps) {
       </div>
 
       {/* Content Layer */}
-      <div className="absolute inset-0 flex items-center px-4 md:px-12">
-        <div className="max-w-2xl w-full space-y-4 md:space-y-6 pt-20 animate-fade-in-up">
+      <div className="absolute inset-0 flex items-end md:items-center px-4 md:px-12 pb-24 md:pb-0">
+        <div className="max-w-2xl w-full space-y-3 md:space-y-5 pt-20 animate-fade-in-up">
           {/* Metadata Badges */}
           <div className="flex items-center space-x-3 text-xs md:text-sm font-medium">
              <span className="bg-yellow-500 text-black px-2 py-0.5 rounded font-bold uppercase tracking-wider shadow-glow">{quality}</span>
@@ -82,7 +82,7 @@ export default function HeroBanner({ movies }: HeroBannerProps) {
 
           {/* Title - Trying to mimic "Logo" style with text if no logo available */}
           <h1 
-             className="text-5xl md:text-7xl lg:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-gray-200 to-gray-400 leading-none drop-shadow-2xl font-anton tracking-wide"
+             className="text-3xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-gray-200 to-gray-400 leading-tight drop-shadow-2xl font-anton tracking-wide line-clamp-2"
              style={{ 
                  textShadow: '0 10px 30px rgba(0,0,0,0.5)',
                  WebkitTextStroke: '1px rgba(255,255,255,0.1)' 
@@ -98,13 +98,13 @@ export default function HeroBanner({ movies }: HeroBannerProps) {
           )}
 
           {/* Description line clamp */}
-          <p className="text-gray-300 text-sm md:text-lg line-clamp-3 md:line-clamp-4 max-w-xl drop-shadow-md leading-relaxed">
+          <p className="text-gray-300 text-sm md:text-base line-clamp-2 md:line-clamp-3 max-w-xl drop-shadow-md leading-relaxed">
              {/* Strip HTML tags if any */}
             {currentMovie.content ? currentMovie.content.replace(/<[^>]*>?/gm, '') : 'Một siêu phẩm không thể bỏ lỡ...'}
           </p>
 
           {/* Action Buttons */}
-          <div className="flex items-center space-x-4 pt-4">
+          <div className="flex items-center space-x-3 pt-2">
             <button 
               onClick={handlePlay}
               className="flex items-center space-x-2 bg-white text-black px-8 py-3.5 rounded hover:bg-white/90 transition transform hover:scale-105 font-bold text-lg shadow-[0_0_20px_rgba(255,255,255,0.3)]"

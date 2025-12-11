@@ -7,7 +7,6 @@ type SearchSource = 'ophim' | 'local';
 
 export default function Header() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [showOphimMenu, setShowOphimMenu] = useState(false);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchSource, setSearchSource] = useState<SearchSource>('ophim');

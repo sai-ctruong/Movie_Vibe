@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { ophimService } from '../services/ophimService';
 import VideoPlayer from '../components/VideoPlayer';
 import { Loader2, Heart, Share2, Plus, Flag, Star, MessageSquare, Send, ThumbsUp, ThumbsDown } from 'lucide-react';
-import toast from 'react-hot-toast';
 
 export default function OphimWatch() {
   const { slug, episode } = useParams();
@@ -48,8 +47,8 @@ export default function OphimWatch() {
   
   return (
     <div className="min-h-screen bg-[#0f172a] text-gray-200 font-sans pb-12">
-      {/* ============ PLAYER SECTION (STICKY) ============ */}
-      <section className="sticky top-0 z-30 w-full bg-black shadow-2xl">
+      {/* ============ PLAYER SECTION ============ */}
+      <section className="w-full bg-black shadow-2xl">
          <div className="w-full max-w-[1600px] mx-auto aspect-video max-h-[75vh] bg-black">
             {currentEpData ? (
                <VideoPlayer

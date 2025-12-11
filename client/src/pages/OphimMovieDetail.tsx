@@ -31,7 +31,6 @@ export default function OphimMovieDetail() {
     }
   };
 
-  const cdnUrl = data?.data?.APP_DOMAIN_CDN_IMAGE;
   const backdropUrl = movie?.poster_url ? getImageUrl(movie.poster_url) : getImageUrl(movie?.thumb_url || '');
 
   if (isLoading) {

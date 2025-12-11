@@ -8,7 +8,9 @@ import {
   Maximize, 
   Minimize, 
   RefreshCw, 
-  AlertCircle 
+  AlertCircle,
+  PictureInPicture2,
+  Gauge
 } from 'lucide-react';
 import { videoService, VideoSource } from '../services/videoService';
 
@@ -38,7 +40,12 @@ export default function VideoPlayer({ episode, onError, onSuccess }: VideoPlayer
   const [duration, setDuration] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  const [playbackRate, setPlaybackRate] = useState(1);
+  const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const controlsTimeoutRef = useRef<NodeJS.Timeout>();
+
+  // Available playback speeds
+  const PLAYBACK_SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
   const initializeVideo = useCallback(async () => {
     setIsLoading(true);
@@ -241,6 +248,30 @@ export default function VideoPlayer({ episode, onError, onSuccess }: VideoPlayer
     }
   };
 
+  // Picture-in-Picture toggle
+  const togglePiP = async () => {
+    if (!videoRef.current) return;
+    
+    try {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+      } else if (document.pictureInPictureEnabled) {
+        await videoRef.current.requestPictureInPicture();
+      }
+    } catch (error) {
+      console.error('PiP error:', error);
+    }
+  };
+
+  // Change playback speed
+  const changePlaybackRate = (rate: number) => {
+    if (videoRef.current) {
+      videoRef.current.playbackRate = rate;
+      setPlaybackRate(rate);
+      setShowSpeedMenu(false);
+    }
+  };
+
   const handleMouseMove = () => {
     setShowControls(true);
     if (controlsTimeoutRef.current) {
@@ -385,7 +416,7 @@ export default function VideoPlayer({ episode, onError, onSuccess }: VideoPlayer
                 </div>
               </div>
 
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-3">
                 {/* Source Selection - simplified */}
                 {sources.length > 1 && (
                     <div className="flex items-center space-x-2 text-xs text-gray-400">
@@ -404,6 +435,46 @@ export default function VideoPlayer({ episode, onError, onSuccess }: VideoPlayer
                             ))}
                         </select>
                     </div>
+                )}
+
+                {/* Playback Speed Selector */}
+                <div className="relative">
+                  <button 
+                    onClick={() => setShowSpeedMenu(!showSpeedMenu)}
+                    className="flex items-center space-x-1 text-white hover:text-green-500 transition px-2 py-1 rounded bg-black/30 hover:bg-black/50"
+                  >
+                    <Gauge className="w-4 h-4" />
+                    <span className="text-xs font-medium">{playbackRate}x</span>
+                  </button>
+                  
+                  {showSpeedMenu && (
+                    <div className="absolute bottom-full right-0 mb-2 bg-black/95 border border-gray-700 rounded-lg shadow-xl py-1 min-w-[80px] z-50">
+                      {PLAYBACK_SPEEDS.map((speed) => (
+                        <button
+                          key={speed}
+                          onClick={() => changePlaybackRate(speed)}
+                          className={`w-full px-3 py-1.5 text-left text-sm transition ${
+                            playbackRate === speed 
+                              ? 'text-green-500 bg-green-500/10' 
+                              : 'text-white hover:bg-white/10'
+                          }`}
+                        >
+                          {speed === 1 ? 'Normal' : `${speed}x`}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Picture-in-Picture */}
+                {document.pictureInPictureEnabled && (
+                  <button 
+                    onClick={togglePiP}
+                    className="text-white hover:text-green-500 transition"
+                    title="Picture-in-Picture"
+                  >
+                    <PictureInPicture2 className="w-5 h-5" />
+                  </button>
                 )}
                 
                 {/* Fullscreen */}

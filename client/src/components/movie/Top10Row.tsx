@@ -47,31 +47,24 @@ export default function Top10Row({ title, movies, isLoading }: Top10RowProps) {
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {topMovies.map((movie, index) => (
-            <div key={movie.slug} className="relative flex-shrink-0 flex items-center group/card cursor-pointer">
+            <div key={movie.slug} className="relative flex-shrink-0 flex items-end group/card cursor-pointer">
                {/* Huge Number */}
-               <div className="relative -mr-6 z-0 flex-shrink-0 h-[200px] flex items-end">
-                  <svg 
-                    viewBox="0 0 100 200" 
-                    className="h-full w-auto fill-black stroke-white stroke-[2px] drop-shadow-2xl opacity-80"
+               <div className="relative -mr-4 z-0 flex-shrink-0 select-none pointer-events-none">
+                  <span 
+                    className="text-[140px] md:text-[180px] font-black leading-none"
                     style={{ 
-                        filter: 'drop-shadow(0 0 5px rgba(255,255,255,0.2))' 
+                      fontFamily: 'Arial Black, sans-serif',
+                      WebkitTextStroke: '3px rgba(128, 128, 128, 0.5)',
+                      color: 'transparent',
+                      textShadow: '4px 4px 8px rgba(0,0,0,0.8)'
                     }}
                   >
-                     <text 
-                        x="50%" 
-                        y="100%" 
-                        textAnchor="middle" 
-                        fontSize="230" 
-                        fontWeight="900" 
-                        fontFamily="Oswald"
-                     >
-                        {index + 1}
-                     </text>
-                  </svg>
+                    {index + 1}
+                  </span>
                </div>
                
                {/* Movie Card */}
-               <div className="w-[140px] md:w-[180px] z-10 transform transition-transform duration-300 group-hover/card:scale-105 origin-center">
+               <div className="w-[120px] md:w-[150px] z-10 transform transition-transform duration-300 group-hover/card:scale-105 origin-bottom -ml-2">
                   <OphimMovieCard movie={movie} />
                </div>
             </div>

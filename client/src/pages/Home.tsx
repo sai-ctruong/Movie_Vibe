@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+
 import { useQuery } from '@tanstack/react-query';
 import { movieService } from '../services/movieService';
 import { nguoncService } from '../services/nguoncService';
@@ -9,7 +9,7 @@ import NguoncMovieRow from '../components/movie/NguoncMovieRow';
 import OphimMovieRow from '../components/movie/OphimMovieRow';
 import HeroBanner from '../components/HeroBanner';
 import Top10Row from '../components/movie/Top10Row'; // Added this import
-import { Clock, Film, Clapperboard, Loader2, TrendingUp } from 'lucide-react'; // Modified this import
+import { Clock, Film, Clapperboard, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 export default function Home() {
@@ -25,12 +25,6 @@ export default function Home() {
   const { data: recentMovies } = useQuery({
     queryKey: ['movies', 'recent'],
     queryFn: () => movieService.getMovies({ sortBy: 'recent', limit: 20 }),
-  });
-
-  // Fetch top rated movies (Local DB)
-  const { data: topRatedMovies } = useQuery({
-    queryKey: ['movies', 'rating'],
-    queryFn: () => movieService.getMovies({ sortBy: 'rating', limit: 20 }),
   });
 
   // Fetch watch history

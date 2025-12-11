@@ -1,9 +1,8 @@
-import { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ophimService } from '../services/ophimService';
 import OphimMovieCard from '../components/movie/OphimMovieCard';
-import { Filter, Globe, Tag, Loader2, Film, ArrowLeft, Grid, X } from 'lucide-react';
+import { Filter, Globe, Tag, Loader2, Film, ArrowLeft, Grid } from 'lucide-react';
 
 // Danh sách thể loại phổ biến
 const CATEGORIES = [

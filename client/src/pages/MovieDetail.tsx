@@ -74,7 +74,7 @@ export default function MovieDetail() {
             </div>
 
             <div className="flex items-center flex-wrap gap-2 mb-6">
-              {movie.genre.map((g) => (
+              {movie.genre.map((g: string) => (
                 <span key={g} className="px-3 py-1 bg-netflix-gray rounded-full text-white text-sm">
                   {g}
                 </span>
@@ -147,7 +147,7 @@ export default function MovieDetail() {
           <div>
             <h3 className="text-xl font-bold text-white mb-4">Cast</h3>
             <ul className="text-gray-300 space-y-2">
-              {movie.cast.map((actor, index) => (
+              {movie.cast.map((actor: string, index: number) => (
                 <li key={index}>{actor}</li>
               ))}
             </ul>
