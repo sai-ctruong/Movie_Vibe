@@ -45,7 +45,7 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-black via-black/80 to-transparent">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-black via-black/80 to-transparent backdrop-blur-sm">
       <div className="flex items-center justify-between px-4 md:px-12 py-4">
         {/* Logo and Navigation */}
         <div className="flex items-center space-x-8">
@@ -64,43 +64,77 @@ export default function Header() {
             
             {/* OPhim Dropdown */}
             <div 
-              className="relative"
-              onMouseEnter={() => setShowOphimMenu(true)}
-              onMouseLeave={() => setShowOphimMenu(false)}
+              className="relative group"
             >
-              <button className="flex items-center space-x-1 text-green-400 hover:text-green-300 transition font-medium">
+              <button className="flex items-center space-x-1 text-green-400 hover:text-green-300 transition font-medium py-4">
                 <Zap className="w-4 h-4" />
-                <span>OPhim</span>
-                <ChevronDown className="w-3 h-3" />
+                <span>OPhim VIP</span>
+                <ChevronDown className="w-3 h-3 group-hover:rotate-180 transition-transform" />
               </button>
               
-              {showOphimMenu && (
-                <div className="absolute left-0 mt-2 w-52 bg-gray-900/95 backdrop-blur border border-gray-800 rounded-lg shadow-xl py-2 z-50">
-                  <div className="px-3 py-2 border-b border-gray-800">
-                    <span className="text-green-400 text-xs font-semibold flex items-center">
-                      <Zap className="w-3 h-3 mr-1" />
-                      KHÔNG QUẢNG CÁO
-                    </span>
-                  </div>
-                  <Link
-                    to="/ophim/search"
-                    className="flex items-center px-4 py-2.5 text-white hover:bg-green-600/20 transition"
-                    onClick={() => setShowOphimMenu(false)}
-                  >
-                    <Search className="w-4 h-4 mr-3 text-green-500" />
-                    Tìm Kiếm Phim
-                  </Link>
-                  <Link
-                    to="/ophim/browse"
-                    className="flex items-center px-4 py-2.5 text-white hover:bg-green-600/20 transition"
-                    onClick={() => setShowOphimMenu(false)}
-                  >
-                    <Grid className="w-4 h-4 mr-3 text-green-500" />
-                    Duyệt Thể Loại
-                  </Link>
+              <div className="absolute top-full left-0 w-64 bg-gray-900/95 backdrop-blur border border-gray-800 rounded-lg shadow-xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                <div className="px-4 py-2 border-b border-gray-800">
+                  <span className="text-green-400 text-xs font-bold tracking-wider flex items-center">
+                    <Zap className="w-3 h-3 mr-1" />
+                    SERVER KHÔNG QUẢNG CÁO
+                  </span>
                 </div>
-              )}
+                <Link
+                  to="/ophim/search"
+                  className="flex items-center px-4 py-3 text-white hover:bg-green-600/20 transition border-l-2 border-transparent hover:border-green-500"
+                >
+                  <Search className="w-4 h-4 mr-3 text-green-500" />
+                  Tìm Kiếm Phim
+                </Link>
+                <Link
+                  to="/ophim/browse"
+                  className="flex items-center px-4 py-3 text-white hover:bg-green-600/20 transition border-l-2 border-transparent hover:border-green-500"
+                >
+                  <Grid className="w-4 h-4 mr-3 text-green-500" />
+                  Duyệt Thể Loại
+                </Link>
+              </div>
             </div>
+
+            {/* Categories Dropdown */}
+            <div className="relative group">
+               <button className="flex items-center space-x-1 text-white hover:text-gray-300 transition font-medium py-4">
+                  <span>Thể loại</span>
+                  <ChevronDown className="w-3 h-3 group-hover:rotate-180 transition-transform" />
+               </button>
+
+               <div className="absolute top-full left-0 w-[400px] bg-gray-900/95 backdrop-blur border border-gray-800 rounded-lg shadow-xl p-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 grid grid-cols-2 gap-2">
+                  {[
+                    { name: 'Hành Động', slug: 'hanh-dong' },
+                    { name: 'Tình Cảm', slug: 'tinh-cam' },
+                    { name: 'Hài Hước', slug: 'hai-huoc' },
+                    { name: 'Kinh Dị', slug: 'kinh-di' },
+                    { name: 'Tâm Lý', slug: 'tam-ly' },
+                    { name: 'Viễn Tưởng', slug: 'vien-tuong' },
+                    { name: 'Hoạt Hình', slug: 'hoat-hinh' },
+                    { name: 'Học Đường', slug: 'hoc-duong' },
+                    { name: 'Gia Đình', slug: 'gia-dinh' },
+                    { name: 'Tài Liệu', slug: 'tai-lieu' },
+                  ].map((cat) => (
+                     <Link
+                        key={cat.slug}
+                        to={`/ophim/browse?category=${cat.slug}`}
+                        className="block px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded transition"
+                     >
+                        {cat.name}
+                     </Link>
+                  ))}
+                  <div className="col-span-2 pt-2 border-t border-gray-800 mt-2">
+                     <Link to="/ophim/browse" className="text-center block text-xs text-green-400 hover:underline">
+                        Xem tất cả thể loại →
+                     </Link>
+                  </div>
+               </div>
+            </div>
+
+            <Link to="/video-test" className="text-yellow-400 hover:text-yellow-300 transition text-sm">
+              Video Test
+            </Link>
 
             {user?.role === 'admin' && (
               <Link to="/admin" className="text-white hover:text-gray-300 transition">
@@ -165,7 +199,6 @@ export default function Header() {
               </div>
             </form>
 
-            {/* Source Dropdown */}
             {showSearchDropdown && (
               <div className="absolute left-0 top-full mt-1 w-48 bg-gray-900/95 backdrop-blur border border-gray-800 rounded-lg shadow-xl py-1 z-50">
                 <button
@@ -173,14 +206,16 @@ export default function Header() {
                     setSearchSource('ophim');
                     setShowSearchDropdown(false);
                   }}
-                  className={`w-full flex items-center px-4 py-2.5 text-left transition ${
-                    searchSource === 'ophim' ? 'bg-green-600/20 text-green-400' : 'text-white hover:bg-gray-800'
-                  }`}
+                  className="w-full"
                 >
-                  <Zap className="w-4 h-4 mr-3" />
-                  <div>
-                    <div className="font-medium">OPhim</div>
-                    <div className="text-xs text-gray-500">Không quảng cáo</div>
+                  <div className={`w-full flex items-center px-4 py-2.5 text-left transition ${
+                    searchSource === 'ophim' ? 'bg-green-600/20 text-green-400' : 'text-white hover:bg-gray-800'
+                  }`}>
+                    <i className="fas fa-bolt w-4 h-4 mr-3"></i>
+                    <div>
+                      <div className="font-medium">OPhim</div>
+                      <div className="text-xs text-gray-500">Không quảng cáo</div>
+                    </div>
                   </div>
                 </button>
                 <button
@@ -188,14 +223,16 @@ export default function Header() {
                     setSearchSource('local');
                     setShowSearchDropdown(false);
                   }}
-                  className={`w-full flex items-center px-4 py-2.5 text-left transition ${
-                    searchSource === 'local' ? 'bg-red-600/20 text-red-400' : 'text-white hover:bg-gray-800'
-                  }`}
+                  className="w-full"
                 >
-                  <Film className="w-4 h-4 mr-3" />
-                  <div>
-                    <div className="font-medium">Local DB</div>
-                    <div className="text-xs text-gray-500">Phim trong server</div>
+                  <div className={`w-full flex items-center px-4 py-2.5 text-left transition ${
+                    searchSource === 'local' ? 'bg-red-600/20 text-red-400' : 'text-white hover:bg-gray-800'
+                  }`}>
+                    <i className="fas fa-database w-4 h-4 mr-3"></i>
+                    <div>
+                      <div className="font-medium">Local DB</div>
+                      <div className="text-xs text-gray-500">Phim trong server</div>
+                    </div>
                   </div>
                 </button>
               </div>
@@ -235,7 +272,7 @@ export default function Header() {
                   onClick={handleLogout}
                   className="w-full flex items-center px-4 py-2.5 text-red-400 hover:bg-gray-800 transition"
                 >
-                  <span className="w-4 h-4 mr-3">🚪</span>
+                  <i className="fas fa-sign-out-alt w-4 h-4 mr-3"></i>
                   Đăng xuất
                 </button>
               </div>

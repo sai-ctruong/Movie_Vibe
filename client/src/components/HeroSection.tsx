@@ -45,11 +45,11 @@ export default function HeroSection({ movies }: HeroSectionProps) {
   if (!currentMovie) return null;
 
   return (
-    <div className="relative h-[85vh] min-h-[600px] overflow-hidden">
+    <div className="relative h-screen min-h-[600px] overflow-hidden">
       {/* Background Image with animation */}
       <div className={`absolute inset-0 transition-opacity duration-500 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
         <img
-          src={`http://localhost:5000${currentMovie.thumbnail}`}
+          src={`http://localhost:5001${currentMovie.thumbnail}`}
           alt={currentMovie.title}
           className="w-full h-full object-cover scale-105 animate-slow-zoom"
           onError={(e) => {

@@ -42,7 +42,7 @@ export default function MovieDetail() {
       <div className="relative h-[70vh]">
         <div className="absolute inset-0">
           <img
-            src={`http://localhost:5000${movie.thumbnail}`}
+            src={`http://localhost:5001${movie.thumbnail}`}
             alt={movie.title}
             className="w-full h-full object-cover"
             onError={(e) => {

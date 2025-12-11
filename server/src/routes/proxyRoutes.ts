@@ -8,75 +8,12 @@ const router = express.Router();
  * Bypass CORS và các vấn đề DNS bằng cách server fetch thay cho client
  */
 
-// Proxy m3u8 playlist
-router.get('/m3u8', async (req, res) => {
-  try {
-    const { url } = req.query;
-    
-    if (!url || typeof url !== 'string') {
-      return res.status(400).json({ error: 'Missing url parameter' });
-    }
-
-    // Decode URL nếu cần
-    const decodedUrl = decodeURIComponent(url);
-    
-    // Fetch m3u8 content từ nguồn
-    const response = await axios.get(decodedUrl, {
-      timeout: 15000,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': '*/*',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Referer': 'https://phim.nguonc.com/',
-        'Origin': 'https://phim.nguonc.com',
-      },
-      responseType: 'text',
-    });
-
-    let content = response.data;
-    
-    // Parse base URL để resolve relative paths
-    const baseUrl = decodedUrl.substring(0, decodedUrl.lastIndexOf('/') + 1);
-    
-    // Rewrite các URL trong m3u8 để proxy qua server
-    // Handle both .ts segments and nested .m3u8 playlists
-    content = content.replace(
-      /^(?!#)(.+\.(ts|m3u8|key))$/gm,
-      (match: string) => {
-        if (match.startsWith('http://') || match.startsWith('https://')) {
-          // Absolute URL - proxy nó
-          return `/api/proxy/segment?url=${encodeURIComponent(match)}`;
-        } else {
-          // Relative URL - resolve và proxy
-          const absoluteUrl = new URL(match, baseUrl).href;
-          return `/api/proxy/segment?url=${encodeURIComponent(absoluteUrl)}`;
-        }
-      }
-    );
-
-    // Set headers cho response
-    res.set({
-      'Content-Type': 'application/vnd.apple.mpegurl',
-      'Access-Control-Allow-Origin': '*',
-      'Cache-Control': 'no-cache',
-    });
-
-    return res.send(content);
-  } catch (error: any) {
-    console.error('M3U8 Proxy Error:', error.message);
-    
-    if (error.code === 'ENOTFOUND') {
-      return res.status(502).json({ 
-        error: 'Không thể kết nối đến server nguồn. URL có thể không hợp lệ.',
-        details: error.message 
-      });
-    }
-    
-    return res.status(500).json({ 
-      error: 'Lỗi khi fetch m3u8',
-      details: error.message 
-    });
-  }
+// Proxy m3u8 playlist (TẠM THỜI TẮT - không sử dụng)
+router.get('/m3u8', async (_req, res) => {
+  return res.status(503).json({ 
+    error: 'M3U8 proxy hiện tại không khả dụng',
+    suggestion: 'Vui lòng sử dụng trình phát nhúng (embed)'
+  });
 });
 
 // Proxy video segments (.ts files) và keys
@@ -184,34 +121,48 @@ router.get('/extract', async (req, res) => {
 
     const html = response.data;
     
-    // Extract data-obf attribute
+    // Try multiple extraction methods
+    let streamData = null;
+    
+    // Method 1: Extract data-obf attribute
     const obfMatch = html.match(/data-obf="([^"]+)"/);
-    if (!obfMatch) {
-      return res.status(404).json({ error: 'Không tìm thấy dữ liệu video' });
+    if (obfMatch) {
+      try {
+        const obfData = JSON.parse(Buffer.from(obfMatch[1], 'base64').toString());
+        streamData = JSON.parse(Buffer.from(obfData.sUb, 'base64').toString());
+      } catch (e) {
+        console.log('Failed to decode data-obf:', e);
+      }
     }
-
-    // Decode base64 data
-    const obfData = JSON.parse(Buffer.from(obfMatch[1], 'base64').toString());
     
-    // Decode nested base64
-    const streamData = JSON.parse(Buffer.from(obfData.sUb, 'base64').toString());
+    // Method 2: Look for direct token in script tags
+    if (!streamData) {
+      const scriptMatch = html.match(/var\s+token\s*=\s*["']([^"']+)["']/);
+      if (scriptMatch) {
+        streamData = { t: scriptMatch[1] };
+      }
+    }
     
-    // Construct m3u8 URL - the token 't' is the actual stream URL
-    // Format: https://domain/token.m3u8
-    const m3u8Url = streamData.t + '.m3u8';
+    // Method 3: Look for m3u8 URLs directly in the HTML
+    if (!streamData) {
+      const m3u8Match = html.match(/https?:\/\/[^"'\s]+\.m3u8/);
+      if (m3u8Match) {
+        return res.json({ 
+          success: true,
+          m3u8: m3u8Match[0],
+          token: m3u8Match[0].split('/').pop()?.replace('.m3u8', '') || 'direct'
+        });
+      }
+    }
     
-    // Kiểm tra xem URL có phải là relative hay absolute
-    let finalUrl = m3u8Url;
-    if (!m3u8Url.startsWith('http')) {
-      // Có thể cần thêm domain - thử các domain phổ biến
-      finalUrl = `https://vid2a41.site/${m3u8Url}`;
+    if (!streamData || !streamData.t) {
+      return res.status(404).json({ error: 'Không tìm thấy dữ liệu video trong embed' });
     }
     
     return res.json({ 
       success: true,
-      m3u8: finalUrl,
-      hash: streamData.h,
-      token: streamData.t
+      token: streamData.t,
+      hash: streamData.h || null
     });
   } catch (error: any) {
     console.error('Extract Error:', error.message);
@@ -222,86 +173,70 @@ router.get('/extract', async (req, res) => {
   }
 });
 
-// Proxy m3u8 từ extracted URL (với domain resolver)
+// Proxy m3u8 từ extracted URL (TẠM THỜI TẮT - domains không hoạt động)
 router.get('/stream', async (req, res) => {
-  try {
-    const { token } = req.query;
-    
-    if (!token || typeof token !== 'string') {
-      return res.status(400).json({ error: 'Missing token parameter' });
-    }
+  const { token } = req.query;
+  
+  // Direct streaming disabled - fallback to embed only
+  
+  return res.status(503).json({ 
+    error: 'Direct streaming hiện tại không khả dụng',
+    details: 'Các server video streaming đang gặp sự cố',
+    suggestion: 'Vui lòng sử dụng trình phát nhúng (embed) thay thế',
+    token: token
+  });
+});
 
-    // Thử nhiều domain phổ biến
-    const domains = [
-      'vid2a41.site',
-      'vid2a42.site',
-      'vid2a43.site',
-      'vid2a44.site',
-      'vid2a45.site',
-      'stream.phimmoi.net',
-    ];
-    
-    let content = null;
-    let workingUrl = '';
-    
-    for (const domain of domains) {
-      try {
-        const url = `https://${domain}/${token}.m3u8`;
-        const response = await axios.get(url, {
-          timeout: 8000,
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            'Accept': '*/*',
-            'Referer': 'https://embed15.streamc.xyz/',
-          },
-          responseType: 'text',
-        });
-        
-        if (response.data && response.data.includes('#EXTM3U')) {
-          content = response.data;
-          workingUrl = url;
-          break;
+// Test endpoint để kiểm tra domains
+router.get('/test-domains', async (_req, res) => {
+  const testDomains = [
+    'embed15.streamc.xyz',
+    'embed12.streamc.xyz',
+    'vid2a41.site',
+    'stream1.nguonc.com',
+    'hls.nguonc.com',
+  ];
+  
+  const results = [];
+  
+  for (const domain of testDomains) {
+    try {
+      const testUrl = `https://${domain}`;
+      const response = await axios.head(testUrl, { 
+        timeout: 5000,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         }
-      } catch (e) {
-        // Try next domain
-        continue;
-      }
-    }
-    
-    if (!content) {
-      return res.status(502).json({ 
-        error: 'Không thể tải video từ các nguồn có sẵn'
+      });
+      
+      results.push({
+        domain,
+        status: 'accessible',
+        statusCode: response.status,
+        headers: {
+          server: response.headers.server,
+          contentType: response.headers['content-type']
+        }
+      });
+    } catch (error: any) {
+      results.push({
+        domain,
+        status: 'failed',
+        error: error.code || error.message,
+        message: error.message
       });
     }
-    
-    // Rewrite URLs trong m3u8
-    const baseUrl = workingUrl.substring(0, workingUrl.lastIndexOf('/') + 1);
-    content = content.replace(
-      /^(?!#)(.+\.(ts|m3u8|key))$/gm,
-      (match: string) => {
-        if (match.startsWith('http://') || match.startsWith('https://')) {
-          return `/api/proxy/segment?url=${encodeURIComponent(match)}`;
-        } else {
-          const absoluteUrl = new URL(match, baseUrl).href;
-          return `/api/proxy/segment?url=${encodeURIComponent(absoluteUrl)}`;
-        }
-      }
-    );
-    
-    res.set({
-      'Content-Type': 'application/vnd.apple.mpegurl',
-      'Access-Control-Allow-Origin': '*',
-      'Cache-Control': 'no-cache',
-    });
-    
-    return res.send(content);
-  } catch (error: any) {
-    console.error('Stream Error:', error.message);
-    return res.status(500).json({ 
-      error: 'Lỗi stream video',
-      details: error.message 
-    });
   }
+  
+  return res.json({
+    timestamp: new Date().toISOString(),
+    results,
+    summary: {
+      total: testDomains.length,
+      accessible: results.filter(r => r.status === 'accessible').length,
+      failed: results.filter(r => r.status === 'failed').length
+    }
+  });
 });
 
 export default router;

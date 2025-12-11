@@ -124,7 +124,7 @@ export default function Watch() {
     >
       <video
         ref={videoRef}
-        src={`http://localhost:5000${movie.video.url}`}
+        src={`http://localhost:5001${movie.video.url}`}
         className="w-full h-full object-contain"
         onClick={togglePlay}
       />

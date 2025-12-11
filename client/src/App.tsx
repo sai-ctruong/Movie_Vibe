@@ -20,6 +20,7 @@ import OphimMovieDetail from './pages/OphimMovieDetail';
 import OphimWatch from './pages/OphimWatch';
 import OphimSearch from './pages/OphimSearch';
 import OphimBrowse from './pages/OphimBrowse';
+import VideoTest from './pages/VideoTest';
 
 // Layout
 import Header from './components/layout/Header';
@@ -177,6 +178,16 @@ function App() {
                 <Header />
                 <OphimBrowse />
               </>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Video Test Route */}
+        <Route
+          path="/video-test"
+          element={
+            <ProtectedRoute>
+              <VideoTest />
             </ProtectedRoute>
           }
         />

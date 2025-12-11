@@ -23,7 +23,7 @@ export default function TrendingMovieCard({ movie, rank, onAddToWatchlist }: Tre
       {/* Movie poster */}
       <div className="relative w-32 h-48 flex-shrink-0 ml-10">
         <img
-          src={`http://localhost:5000${movie.thumbnail}`}
+          src={`http://localhost:5001${movie.thumbnail}`}
           alt={movie.title}
           className="w-full h-full object-cover rounded-md shadow-lg"
           onError={(e) => {

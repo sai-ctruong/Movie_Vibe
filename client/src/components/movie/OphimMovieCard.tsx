@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router-dom';
-import { Play } from 'lucide-react';
-import type { OphimMovie } from '../../types/ophim';
+import { OphimMovie } from '../../types/ophim';
 import { ophimService } from '../../services/ophimService';
+import { Play } from 'lucide-react';
+import { useState, useRef } from 'react';
+import MovieHoverCard from './MovieHoverCard';
 
 interface OphimMovieCardProps {
   movie: OphimMovie;
@@ -9,76 +11,93 @@ interface OphimMovieCardProps {
 
 export default function OphimMovieCard({ movie }: OphimMovieCardProps) {
   const navigate = useNavigate();
+  const [isHovered, setIsHovered] = useState(false);
+  const [showHoverCard, setShowHoverCard] = useState(false);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout>();
 
   const handleClick = () => {
+    if (!movie.slug) return;
     navigate(`/ophim/${movie.slug}`);
   };
 
-  // Helper to get image URL
-  const getImageUrl = () => {
-    return ophimService.getImageUrl(movie.thumb_url || movie.poster_url);
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    hoverTimeoutRef.current = setTimeout(() => {
+      setShowHoverCard(true);
+    }, 500); // 500ms delay before showing detail card
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+    // Small delay to prevent flickering if user accidentally moves out
+    setTimeout(() => {
+        setShowHoverCard(false);
+    }, 300);
   };
 
   return (
-    <div
+    <div 
+      className="relative aspect-[2/3] rounded-lg cursor-pointer group transition-all duration-300 z-10 hover:z-50"
       onClick={handleClick}
-      className="flex-shrink-0 w-40 sm:w-44 md:w-48 cursor-pointer group"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
-      <div className="relative aspect-[2/3] rounded-lg overflow-hidden shadow-lg bg-gray-900">
+      {/* Expanded Hover Card */}
+      {showHoverCard && (
+        <MovieHoverCard 
+            movie={movie} 
+            onMouseLeave={handleMouseLeave}
+            style={{ 
+                width: '150%', // Make it wider than the original card
+                left: '-25%', // Center it horizontally
+                top: '-20%', // Move up slightly
+                position: 'absolute'
+            }}
+        />
+      )}
+
+      {/* Standard Card Content (Hidden when HoverCard is shown to avoid duplication/clutter) */}
+      <div className={`w-full h-full rounded-lg overflow-hidden relative transition-transform duration-300 ${isHovered && !showHoverCard ? 'scale-105' : ''}`}>
         <img
-          src={getImageUrl()}
+          src={ophimService.getImageUrl(movie.thumb_url)}
           alt={movie.name}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           loading="lazy"
           onError={(e) => {
             (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x450?text=No+Image';
           }}
         />
         
-        {/* Gradient overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
-
-        {/* Quality badge */}
-        <div className="absolute top-2 left-2 bg-gradient-to-r from-green-600 to-green-500 text-white text-xs font-bold px-2 py-1 rounded shadow-md">
-          {movie.quality || 'HD'}
-        </div>
-        
-        {/* Episode badge */}
-        <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-sm text-white text-xs px-2 py-1 rounded">
-          {movie.episode_current || 'N/A'}
+        {/* Type Badge */}
+        <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
+          <span className="bg-red-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-lg backdrop-blur-sm">
+            {movie.quality}
+          </span>
+          <span className="bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-lg backdrop-blur-sm">
+            {movie.lang}
+          </span>
         </div>
 
-        {/* Type badge */}
-        {movie.type && (
-          <div className="absolute bottom-12 left-2 bg-blue-600/80 text-white text-xs px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-            {movie.type === 'single' ? 'Phim lẻ' : 
-             movie.type === 'series' ? 'Phim bộ' :
-             movie.type === 'hoathinh' ? 'Hoạt hình' : 'TV Show'}
-          </div>
+        {/* Hover Overlay (Before Expansion) */}
+        {!showHoverCard && (
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <div className="bg-red-600/90 rounded-full p-3 transform scale-0 group-hover:scale-100 transition-transform duration-300 shadow-xl">
+                    <Play className="w-8 h-8 text-white fill-white ml-1" />
+                </div>
+            </div>
         )}
 
-        {/* Play button on hover */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-          <div className="bg-green-600/90 rounded-full p-3 shadow-xl transform hover:scale-110 transition-transform">
-            <Play className="w-6 h-6 text-white fill-current ml-0.5" />
-          </div>
+        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 via-black/60 to-transparent">
+          <h3 className="text-white font-medium text-sm line-clamp-1 group-hover:text-red-500 transition-colors">
+            {movie.name}
+          </h3>
+          <p className="text-gray-400 text-xs line-clamp-1 mt-0.5">
+            {movie.origin_name} ({movie.year})
+          </p>
         </div>
-
-        {/* Bottom info */}
-        <div className="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <span className="text-gray-300 text-xs">{movie.lang || 'Vietsub'}</span>
-        </div>
-      </div>
-      
-      {/* Title */}
-      <h3 className="text-white text-sm font-medium mt-2 line-clamp-2 group-hover:text-green-400 transition-colors duration-200 leading-tight">
-        {movie.name}
-      </h3>
-      
-      {/* Year and country */}
-      <div className="flex items-center text-gray-500 text-xs mt-0.5 space-x-2">
-        {movie.year && <span>{movie.year}</span>}
-        {movie.country?.[0] && <span>• {movie.country[0].name}</span>}
       </div>
     </div>
   );

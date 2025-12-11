@@ -14,7 +14,7 @@ export default function MovieCard({ movie, onAddToWatchlist }: MovieCardProps) {
     <div className="movie-card group">
       <div className="relative aspect-[2/3]">
         <img
-          src={`http://localhost:5000${movie.thumbnail}`}
+          src={`http://localhost:5001${movie.thumbnail}`}
           alt={movie.title}
           className="w-full h-full object-cover rounded-md"
           onError={(e) => {

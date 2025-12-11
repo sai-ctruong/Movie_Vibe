@@ -72,7 +72,9 @@ export default function NguoncMovieRow({ title, movies, isLoading, icon }: Nguon
           }}
         >
           {movies.map((movie) => (
-            <NguoncMovieCard key={movie.slug} movie={movie} />
+            <div key={movie.slug} className="w-[160px] md:w-[200px] flex-shrink-0">
+              <NguoncMovieCard movie={movie} />
+            </div>
           ))}
         </div>
 

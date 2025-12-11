@@ -71,7 +71,9 @@ export default function OphimMovieRow({ title, movies, isLoading, icon }: OphimM
           }}
         >
           {movies.map((movie) => (
-            <OphimMovieCard key={movie._id || movie.slug} movie={movie} />
+            <div key={movie._id || movie.slug} className="w-[160px] md:w-[200px] flex-shrink-0">
+              <OphimMovieCard movie={movie} />
+            </div>
           ))}
         </div>
 
