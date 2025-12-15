@@ -131,10 +131,6 @@ export default function Header() {
                </div>
             </div>
 
-            <Link to="/video-test" className="text-yellow-400 hover:text-yellow-300 transition text-sm">
-              Video Test
-            </Link>
-
             {user?.role === 'admin' && (
               <Link to="/admin" className="text-white hover:text-gray-300 transition">
                 Admin

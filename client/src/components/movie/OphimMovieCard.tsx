@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { OphimMovie } from '../../types/ophim';
 import { ophimService } from '../../services/ophimService';
 import { Play } from 'lucide-react';
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import MovieHoverCard from './MovieHoverCard';
 
 interface OphimMovieCardProps {
@@ -14,33 +14,49 @@ export default function OphimMovieCard({ movie }: OphimMovieCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [showHoverCard, setShowHoverCard] = useState(false);
   const hoverTimeoutRef = useRef<NodeJS.Timeout>();
+  const leaveTimeoutRef = useRef<NodeJS.Timeout>();
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const handleClick = () => {
     if (!movie.slug) return;
     navigate(`/ophim/${movie.slug}`);
   };
 
-  const handleMouseEnter = () => {
+  const handleMouseEnter = useCallback(() => {
+    // Clear any pending leave timeout
+    if (leaveTimeoutRef.current) {
+      clearTimeout(leaveTimeoutRef.current);
+    }
+    
     setIsHovered(true);
     hoverTimeoutRef.current = setTimeout(() => {
       setShowHoverCard(true);
-    }, 500); // 500ms delay before showing detail card
-  };
+    }, 400); // Slightly faster for better responsiveness
+  }, []);
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = useCallback(() => {
     setIsHovered(false);
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
     }
-    // Small delay to prevent flickering if user accidentally moves out
-    setTimeout(() => {
-        setShowHoverCard(false);
-    }, 300);
-  };
+    
+    // Delay hiding the hover card to allow moving mouse to it
+    leaveTimeoutRef.current = setTimeout(() => {
+      setShowHoverCard(false);
+    }, 150);
+  }, []);
+
+  const handleHoverCardMouseEnter = useCallback(() => {
+    // Keep hover card visible when mouse enters it
+    if (leaveTimeoutRef.current) {
+      clearTimeout(leaveTimeoutRef.current);
+    }
+  }, []);
 
   return (
     <div 
-      className="relative aspect-[2/3] rounded-lg cursor-pointer group transition-all duration-300 z-10 hover:z-50"
+      ref={cardRef}
+      className="movie-card-wrapper relative aspect-[2/3] rounded-lg cursor-pointer group"
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -48,50 +64,56 @@ export default function OphimMovieCard({ movie }: OphimMovieCardProps) {
       {/* Expanded Hover Card */}
       {showHoverCard && (
         <MovieHoverCard 
-            movie={movie} 
-            onMouseLeave={handleMouseLeave}
-            style={{ 
-                width: '150%', // Make it wider than the original card
-                left: '-25%', // Center it horizontally
-                top: '-20%', // Move up slightly
-                position: 'absolute'
-            }}
+          movie={movie} 
+          onMouseLeave={handleMouseLeave}
+          onMouseEnter={handleHoverCardMouseEnter}
+          style={{ 
+            width: 'calc(100% + 100px)',
+            minWidth: '280px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            top: '-10%',
+            position: 'absolute'
+          }}
         />
       )}
 
-      {/* Standard Card Content (Hidden when HoverCard is shown to avoid duplication/clutter) */}
-      <div className={`w-full h-full rounded-lg overflow-hidden relative transition-transform duration-300 ${isHovered && !showHoverCard ? 'scale-105' : ''}`}>
+      {/* Standard Card Content */}
+      <div className={`w-full h-full rounded-lg overflow-hidden relative transition-all duration-300 ease-out ${
+        isHovered && !showHoverCard ? 'scale-105 shadow-xl' : ''
+      } ${showHoverCard ? 'opacity-0' : 'opacity-100'}`}>
         <img
           src={ophimService.getImageUrl(movie.thumb_url)}
           alt={movie.name}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          className="movie-card-image w-full h-full object-cover"
           loading="lazy"
           onError={(e) => {
             (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x450?text=No+Image';
           }}
         />
         
-        {/* Type Badge */}
+        {/* Quality & Lang Badges */}
         <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
           <span className="bg-red-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-lg backdrop-blur-sm">
             {movie.quality}
           </span>
-          <span className="bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-lg backdrop-blur-sm">
+          <span className="bg-black/70 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-lg backdrop-blur-sm">
             {movie.lang}
           </span>
         </div>
 
-        {/* Hover Overlay (Before Expansion) */}
+        {/* Hover Overlay with Play Button */}
         {!showHoverCard && (
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <div className="bg-red-600/90 rounded-full p-3 transform scale-0 group-hover:scale-100 transition-transform duration-300 shadow-xl">
-                    <Play className="w-8 h-8 text-white fill-white ml-1" />
-                </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
+            <div className="bg-white/95 rounded-full p-3 transform scale-0 group-hover:scale-100 transition-transform duration-300 ease-out shadow-xl hover:bg-white">
+              <Play className="w-8 h-8 text-black fill-black ml-0.5" />
             </div>
+          </div>
         )}
 
-        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 via-black/60 to-transparent">
-          <h3 className="text-white font-medium text-sm line-clamp-1 group-hover:text-red-500 transition-colors">
+        {/* Bottom Info */}
+        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/95 via-black/70 to-transparent">
+          <h3 className="text-white font-semibold text-sm line-clamp-1 group-hover:text-red-400 transition-colors duration-200">
             {movie.name}
           </h3>
           <p className="text-gray-400 text-xs line-clamp-1 mt-0.5">
