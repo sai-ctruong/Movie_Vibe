@@ -220,6 +220,22 @@ export default function VideoPlayer({ episode, onError, onSuccess }: VideoPlayer
     }
   };
 
+  const skipForward = (seconds: number = 10) => {
+    if (videoRef.current) {
+      const newTime = Math.min(videoRef.current.currentTime + seconds, videoRef.current.duration);
+      videoRef.current.currentTime = newTime;
+      setCurrentTime(newTime);
+    }
+  };
+
+  const skipBackward = (seconds: number = 10) => {
+    if (videoRef.current) {
+      const newTime = Math.max(videoRef.current.currentTime - seconds, 0);
+      videoRef.current.currentTime = newTime;
+      setCurrentTime(newTime);
+    }
+  };
+
   const toggleMute = () => {
     if (videoRef.current) {
       videoRef.current.muted = !isMuted;
@@ -291,6 +307,52 @@ export default function VideoPlayer({ episode, onError, onSuccess }: VideoPlayer
     };
   }, [initializeVideo]);
 
+  // Handle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Prevent shortcuts if typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      switch(e.code) {
+        case 'Space':
+          e.preventDefault();
+          togglePlay();
+          break;
+        case 'KeyJ':
+          e.preventDefault();
+          skipBackward(10);
+          break;
+        case 'KeyL':
+          e.preventDefault();
+          skipForward(10);
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          skipBackward(5);
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          skipForward(5);
+          break;
+        case 'KeyF':
+          e.preventDefault();
+          toggleFullscreen();
+          break;
+        case 'KeyM':
+          e.preventDefault();
+          toggleMute();
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isPlaying]);
+
   // Handle auto-hide controls
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -359,10 +421,13 @@ export default function VideoPlayer({ episode, onError, onSuccess }: VideoPlayer
           
           {/* Buffering Spinner */}
           {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/50 pointer-events-none z-20">
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 pointer-events-none z-20">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
               {loadingMessage && (
                   <p className="absolute mt-20 text-white font-medium shadow-black drop-shadow-md">{loadingMessage}</p>
+              )}
+              {!loadingMessage && (
+                  <p className="absolute mt-20 text-white font-medium shadow-black drop-shadow-md">Đang tải...</p>
               )}
             </div>
           )}
@@ -417,6 +482,34 @@ export default function VideoPlayer({ episode, onError, onSuccess }: VideoPlayer
               </div>
 
               <div className="flex items-center space-x-3">
+                {/* Skip Backward Button */}
+                <button 
+                  onClick={() => skipBackward(10)} 
+                  className="flex items-center justify-center w-10 h-10 hover:opacity-80 transition" 
+                  title="Back 10s (J)"
+                >
+                  <svg className="w-10 h-10" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="20" cy="20" r="18" stroke="white" strokeWidth="1.5"/>
+                    <path d="M 14 12 Q 10 16, 10 20 Q 10 26, 16 26" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                    <polygon points="14,10 10,12 14,15" fill="white"/>
+                    <text x="20" y="24" textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">10</text>
+                  </svg>
+                </button>
+
+                {/* Skip Forward Button */}
+                <button 
+                  onClick={() => skipForward(10)} 
+                  className="flex items-center justify-center w-10 h-10 hover:opacity-80 transition" 
+                  title="Forward 10s (L)"
+                >
+                  <svg className="w-10 h-10" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="20" cy="20" r="18" stroke="white" strokeWidth="1.5"/>
+                    <path d="M 26 12 Q 30 16, 30 20 Q 30 26, 24 26" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                    <polygon points="26,10 30,12 26,15" fill="white"/>
+                    <text x="20" y="24" textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">10</text>
+                  </svg>
+                </button>
+
                 {/* Source Selection - simplified */}
                 {sources.length > 1 && (
                     <div className="flex items-center space-x-2 text-xs text-gray-400">
