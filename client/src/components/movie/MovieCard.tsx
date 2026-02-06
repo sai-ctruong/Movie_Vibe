@@ -1,73 +1,170 @@
 import { Movie } from '../../types';
 import { Play, Plus, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import styled from 'styled-components';
+import {
+  MovieCardPlayButton,
+  MovieCardTitle,
+  MovieCardRating,
+  MovieCardButtonGroup,
+  MovieCardPrimaryButton,
+  MovieCardIconButton,
+} from './MovieCardComponents';
 
 interface MovieCardProps {
   movie: Movie;
   onAddToWatchlist?: () => void;
 }
 
+// Styled card container with hover effects
+const CardWrapper = styled.div`
+  position: relative;
+  aspect-ratio: 2 / 3;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  group: 'hover';
+  
+  img {
+    transition: transform 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+  }
+  
+  &:hover img {
+    transform: scale(1.08);
+  }
+
+/* Gloss effect - angled shine */
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.15) 20%,
+      rgba(255, 255, 255, 0.3) 50%,
+      rgba(255, 255, 255, 0.15) 80%,
+      transparent 100%
+    );
+    pointer-events: none;
+    z-index: 20;
+    transform: skewX(-20deg);
+  }
+
+  &:hover::before {
+    animation: glossSlide 0.85s ease-in-out forwards;
+  }
+
+  @keyframes glossSlide {
+    0% {
+      left: -100%;
+    }
+    100% {
+      left: 100%;
+    }
+  }
+
+  /* Overlay */
+  .overlay {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0);
+    transition: background-color 0.35s cubic-bezier(0.23, 1, 0.320, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    z-index: 10;
+  }
+
+  &:hover .overlay {
+    background-color: rgba(0, 0, 0, 0.65);
+  }
+
+  /* Info section */
+  .info-section {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 16px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.7), transparent);
+    border-radius: 0 0 0.5rem 0.5rem;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.35s cubic-bezier(0.23, 1, 0.320, 1);
+    z-index: 12;
+  }
+
+  &:hover .info-section {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
 export default function MovieCard({ movie, onAddToWatchlist }: MovieCardProps) {
   const navigate = useNavigate();
 
-  return (
-    <div className="movie-card group">
-      <div className="relative aspect-[2/3]">
-        <img
-          src={`http://localhost:5001${movie.thumbnail}`}
-          alt={movie.title}
-          className="w-full h-full object-cover rounded-md"
-          loading="lazy"
-          decoding="async"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            if (target.src !== 'https://via.placeholder.com/300x450?text=No+Image') {
-              target.src = 'https://via.placeholder.com/300x450?text=No+Image';
-            }
-          }}
-        />
-        
-        {/* Overlay on hover */}
-        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 transition-all duration-300 flex items-end opacity-0 group-hover:opacity-100 rounded-md">
-          <div className="p-4 w-full">
-            <h3 className="text-white font-semibold text-lg mb-2 line-clamp-1">
-              {movie.title}
-            </h3>
-            
-            <div className="flex items-center space-x-2 mb-2">
-              <span className="text-yellow-400">★</span>
-              <span className="text-white text-sm">{movie.rating.average.toFixed(1)}</span>
-              <span className="text-gray-400 text-xs">({movie.rating.count})</span>
-            </div>
+  const handlePlayClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/watch/${movie._id}`);
+  };
 
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => navigate(`/watch/${movie._id}`)}
-                className="bg-white text-black px-3 py-1.5 rounded flex items-center space-x-1 hover:bg-opacity-80 transition text-sm"
-              >
-                <Play className="w-4 h-4" />
-                <span>Play</span>
-              </button>
-              
-              {onAddToWatchlist && (
-                <button
-                  onClick={onAddToWatchlist}
-                  className="bg-netflix-darkGray p-1.5 rounded hover:bg-netflix-gray transition"
-                >
-                  <Plus className="w-4 h-4 text-white" />
-                </button>
-              )}
-              
-              <button
-                onClick={() => navigate(`/movie/${movie._id}`)}
-                className="bg-netflix-darkGray p-1.5 rounded hover:bg-netflix-gray transition"
-              >
-                <Info className="w-4 h-4 text-white" />
-              </button>
-            </div>
-          </div>
-        </div>
+  const handleMoreInfo = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/movie/${movie._id}`);
+  };
+
+  const handleAddToWatchlist = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onAddToWatchlist?.();
+  };
+
+  return (
+    <CardWrapper className="group">
+      <img
+        src={`http://localhost:5001${movie.thumbnail}`}
+        alt={movie.title}
+        className="w-full h-full object-cover"
+        loading="lazy"
+        decoding="async"
+        onError={(e) => {
+          const target = e.target as HTMLImageElement;
+          if (target.src !== 'https://via.placeholder.com/300x450?text=No+Image') {
+            target.src = 'https://via.placeholder.com/300x450?text=No+Image';
+          }
+        }}
+      />
+
+      {/* Center play button on hover */}
+      <div className="overlay">
+        <MovieCardPlayButton onClick={handlePlayClick} />
       </div>
-    </div>
+
+      {/* Info section at bottom on hover */}
+      <div className="info-section">
+        <MovieCardTitle title={movie.title} />
+        <MovieCardRating rating={movie.rating.average} count={movie.rating.count} />
+
+        <MovieCardButtonGroup>
+          <MovieCardPrimaryButton onClick={handlePlayClick}>
+            <Play className="w-4 h-4" />
+            <span>Play</span>
+          </MovieCardPrimaryButton>
+
+          {onAddToWatchlist && (
+            <MovieCardIconButton onClick={handleAddToWatchlist} title="Add to Watchlist">
+              <Plus className="w-4 h-4 text-white" />
+            </MovieCardIconButton>
+          )}
+
+          <MovieCardIconButton onClick={handleMoreInfo} title="More Info">
+            <Info className="w-4 h-4 text-white" />
+          </MovieCardIconButton>
+        </MovieCardButtonGroup>
+      </div>
+    </CardWrapper>
   );
 }

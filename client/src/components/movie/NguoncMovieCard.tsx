@@ -1,86 +1,162 @@
 import { useNavigate } from 'react-router-dom';
-import { Play } from 'lucide-react';
+import { Play, Info } from 'lucide-react';
 import type { NguoncMovie } from '../../types/nguonc';
+import styled from 'styled-components';
+import {
+  MovieCardPlayButton,
+  MovieCardTitle,
+  MovieCardButtonGroup,
+  MovieCardPrimaryButton,
+  MovieCardIconButton,
+} from './MovieCardComponents';
 
 interface NguoncMovieCardProps {
   movie: NguoncMovie;
 }
 
+const CardWrapper = styled.div`
+  position: relative;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  group: 'hover';
+
+  img {
+    transition: transform 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+  }
+
+  &:hover img {
+    transform: scale(1.08);
+  }
+
+  /* Gloss effect - angled shine */
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.15) 20%,
+      rgba(255, 255, 255, 0.3) 50%,
+      rgba(255, 255, 255, 0.15) 80%,
+      transparent 100%
+    );
+    pointer-events: none;
+    z-index: 20;
+    transform: skewX(-20deg);
+  }
+
+  &:hover::before {
+    animation: glossSlide 0.85s ease-in-out forwards;
+  }
+
+  @keyframes glossSlide {
+    0% {
+      left: -100%;
+    }
+    100% {
+      left: 100%;
+    }
+  }
+
+  /* Overlay */
+  .overlay {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0);
+    transition: background-color 0.35s cubic-bezier(0.23, 1, 0.320, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    z-index: 10;
+  }
+
+  &:hover .overlay {
+    background-color: rgba(0, 0, 0, 0.65);
+  }
+
+  /* Info section */
+  .info-section {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 12px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.7), transparent);
+    border-radius: 0 0 0.5rem 0.5rem;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.35s cubic-bezier(0.23, 1, 0.320, 1);
+    z-index: 12;
+  }
+
+  &:hover .info-section {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
 export default function NguoncMovieCard({ movie }: NguoncMovieCardProps) {
   const navigate = useNavigate();
 
-  const handleClick = () => {
+  const handlePlayClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/nguonc/${movie.slug}`);
+  };
+
+  const handleMoreInfo = (e: React.MouseEvent) => {
+    e.stopPropagation();
     navigate(`/nguonc/${movie.slug}`);
   };
 
   return (
-    <div
-      onClick={handleClick}
-      className="flex-shrink-0 w-40 sm:w-44 md:w-48 cursor-pointer group"
-    >
-      <div className="relative aspect-[2/3] rounded-lg overflow-hidden shadow-lg bg-gray-900">
-        <img
-          src={movie.thumb_url || movie.poster_url}
-          alt={movie.name}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-          loading="lazy"
-          decoding="async"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            if (target.src !== 'https://via.placeholder.com/300x450?text=No+Image') {
-              target.src = 'https://via.placeholder.com/300x450?text=No+Image';
-            }
-          }}
-        />
-        
-        {/* Gradient overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
-
-        {/* Quality badge */}
-        <div className="absolute top-2 left-2 bg-gradient-to-r from-red-600 to-red-500 text-white text-xs font-bold px-2 py-1 rounded shadow-md">
-          {movie.quality || 'HD'}
-        </div>
-        
-        {/* Episode badge */}
-        <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-sm text-white text-xs px-2 py-1 rounded">
-          {movie.current_episode || 'Tập ?'}
-        </div>
-
-        {/* Play button on hover */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:scale-100 scale-75">
-          <div className="bg-white/95 rounded-full p-3 shadow-xl group-hover:bg-red-600 transition-colors duration-300">
-            <Play className="w-6 h-6 text-black group-hover:text-white fill-current ml-0.5" />
-          </div>
-        </div>
-
-        {/* Bottom info on hover */}
-        <div className="absolute bottom-0 left-0 right-0 p-3 transform translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300">
-          {/* Language badge */}
-          <div className="flex items-center space-x-1 mb-1">
-            <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded">
-              {movie.language || 'Vietsub'}
-            </span>
-            {movie.time && (
-              <span className="text-gray-300 text-xs">
-                {movie.time}
-              </span>
-            )}
-          </div>
-        </div>
+    <CardWrapper className="flex-shrink-0 w-40 sm:w-44 md:w-48 cursor-pointer group">
+      <img
+        src={movie.thumb_url || movie.poster_url}
+        alt={movie.name}
+        className="w-full h-full object-cover"
+        loading="lazy"
+        decoding="async"
+        onError={(e) => {
+          const target = e.target as HTMLImageElement;
+          if (target.src !== 'https://via.placeholder.com/300x450?text=No+Image') {
+            target.src = 'https://via.placeholder.com/300x450?text=No+Image';
+          }
+        }}
+      />
+      
+      {/* Quality & Episode badges */}
+      <div className="absolute top-2 left-2 bg-gradient-to-r from-red-600 to-red-500 text-white text-xs font-bold px-2 py-1 rounded shadow-md z-5">
+        {movie.quality || 'HD'}
       </div>
-      
-      {/* Title */}
-      <h3 className="text-white text-sm font-medium mt-2 line-clamp-2 group-hover:text-red-500 transition-colors duration-200 leading-tight">
-        {movie.name}
-      </h3>
-      
-      {/* Original name */}
-      {movie.original_name && movie.original_name !== movie.name && (
-        <p className="text-gray-500 text-xs mt-0.5 line-clamp-1">
-          {movie.original_name}
-        </p>
-      )}
-    </div>
+      <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-sm text-white text-xs px-2 py-1 rounded z-5">
+        {movie.current_episode || 'Tập ?'}
+      </div>
+
+      {/* Center play button */}
+      <div className="overlay">
+        <MovieCardPlayButton onClick={handlePlayClick} />
+      </div>
+
+      {/* Info section */}
+      <div className="info-section">
+        <MovieCardTitle title={movie.name} />
+
+        <MovieCardButtonGroup>
+          <MovieCardPrimaryButton onClick={handlePlayClick}>
+            <Play className="w-4 h-4" />
+            <span>Play</span>
+          </MovieCardPrimaryButton>
+          
+          <MovieCardIconButton onClick={handleMoreInfo} title="More Info">
+            <Info className="w-4 h-4 text-white" />
+          </MovieCardIconButton>
+        </MovieCardButtonGroup>
+      </div>
+    </CardWrapper>
   );
 }

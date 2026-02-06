@@ -1,130 +1,171 @@
 import { useNavigate } from 'react-router-dom';
 import { OphimMovie } from '../../types/ophim';
 import { ophimService } from '../../services/ophimService';
-import { Play } from 'lucide-react';
-import { useState, useRef, useCallback } from 'react';
-import MovieHoverCard from './MovieHoverCard';
+import { Play, Info } from 'lucide-react';
+import styled from 'styled-components';
+import {
+  MovieCardPlayButton,
+  MovieCardTitle,
+  MovieCardButtonGroup,
+  MovieCardPrimaryButton,
+  MovieCardIconButton,
+} from './MovieCardComponents';
 
 interface OphimMovieCardProps {
   movie: OphimMovie;
 }
 
+const CardWrapper = styled.div`
+  position: relative;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  group: 'hover';
+
+  img {
+    transition: transform 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+  }
+
+  &:hover img {
+    transform: scale(1.08);
+  }
+
+  /* Gloss effect - angled shine */
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.15) 20%,
+      rgba(255, 255, 255, 0.3) 50%,
+      rgba(255, 255, 255, 0.15) 80%,
+      transparent 100%
+    );
+    pointer-events: none;
+    z-index: 20;
+    transform: skewX(-20deg);
+  }
+
+  &:hover::before {
+    animation: glossSlide 0.85s ease-in-out forwards;
+  }
+
+  @keyframes glossSlide {
+    0% {
+      left: -100%;
+    }
+    100% {
+      left: 100%;
+    }
+  }
+
+  /* Overlay */
+  .overlay {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0);
+    transition: background-color 0.35s cubic-bezier(0.23, 1, 0.320, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    z-index: 10;
+  }
+
+  &:hover .overlay {
+    background-color: rgba(0, 0, 0, 0.65);
+  }
+
+  /* Info section */
+  .info-section {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 12px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.7), transparent);
+    border-radius: 0 0 0.5rem 0.5rem;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.35s cubic-bezier(0.23, 1, 0.320, 1);
+    z-index: 12;
+  }
+
+  &:hover .info-section {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
 export default function OphimMovieCard({ movie }: OphimMovieCardProps) {
   const navigate = useNavigate();
-  const [isHovered, setIsHovered] = useState(false);
-  const [showHoverCard, setShowHoverCard] = useState(false);
-  const hoverTimeoutRef = useRef<NodeJS.Timeout>();
-  const leaveTimeoutRef = useRef<NodeJS.Timeout>();
-  const cardRef = useRef<HTMLDivElement>(null);
 
-  const handleClick = () => {
+  const handlePlayClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!movie.slug) return;
     navigate(`/ophim/${movie.slug}`);
   };
 
-  const handleMouseEnter = useCallback(() => {
-    // Clear any pending leave timeout
-    if (leaveTimeoutRef.current) {
-      clearTimeout(leaveTimeoutRef.current);
-    }
-    
-    setIsHovered(true);
-    hoverTimeoutRef.current = setTimeout(() => {
-      setShowHoverCard(true);
-    }, 400); // Slightly faster for better responsiveness
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    setIsHovered(false);
-    if (hoverTimeoutRef.current) {
-      clearTimeout(hoverTimeoutRef.current);
-    }
-    
-    // Delay hiding the hover card to allow moving mouse to it
-    leaveTimeoutRef.current = setTimeout(() => {
-      setShowHoverCard(false);
-    }, 150);
-  }, []);
-
-  const handleHoverCardMouseEnter = useCallback(() => {
-    // Keep hover card visible when mouse enters it
-    if (leaveTimeoutRef.current) {
-      clearTimeout(leaveTimeoutRef.current);
-    }
-  }, []);
+  const handleMoreInfo = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!movie.slug) return;
+    navigate(`/ophim/${movie.slug}`);
+  };
 
   return (
-    <div 
-      ref={cardRef}
-      className="movie-card-wrapper relative aspect-[2/3] rounded-lg cursor-pointer group"
-      onClick={handleClick}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      {/* Expanded Hover Card */}
-      {showHoverCard && (
-        <MovieHoverCard 
-          movie={movie} 
-          onMouseLeave={handleMouseLeave}
-          onMouseEnter={handleHoverCardMouseEnter}
-          style={{ 
-            width: 'calc(100% + 100px)',
-            minWidth: '280px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            top: '-10%',
-            position: 'absolute'
-          }}
-        />
-      )}
-
-      {/* Standard Card Content */}
-      <div className={`w-full h-full rounded-lg overflow-hidden relative transition-all duration-300 ease-out ${
-        isHovered && !showHoverCard ? 'scale-105 shadow-xl' : ''
-      } ${showHoverCard ? 'opacity-0' : 'opacity-100'}`}>
-        <img
-          src={ophimService.getImageUrl(movie.thumb_url)}
-          alt={movie.name}
-          className="movie-card-image w-full h-full object-cover"
-          loading="lazy"
-          decoding="async"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            if (target.src !== 'https://via.placeholder.com/300x450?text=No+Image') {
-              target.src = 'https://via.placeholder.com/300x450?text=No+Image';
-            }
-          }}
-        />
-        
-        {/* Quality & Lang Badges */}
-        <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
-          <span className="bg-red-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-lg backdrop-blur-sm">
-            {movie.quality}
-          </span>
-          <span className="bg-black/70 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-lg backdrop-blur-sm">
-            {movie.lang}
-          </span>
-        </div>
-
-        {/* Hover Overlay with Play Button */}
-        {!showHoverCard && (
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
-            <div className="bg-white/95 rounded-full p-3 transform scale-0 group-hover:scale-100 transition-transform duration-300 ease-out shadow-xl hover:bg-white">
-              <Play className="w-8 h-8 text-black fill-black ml-0.5" />
-            </div>
-          </div>
-        )}
-
-        {/* Bottom Info */}
-        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/95 via-black/70 to-transparent">
-          <h3 className="text-white font-semibold text-sm line-clamp-1 group-hover:text-red-400 transition-colors duration-200">
-            {movie.name}
-          </h3>
-          <p className="text-gray-400 text-xs line-clamp-1 mt-0.5">
-            {movie.origin_name} ({movie.year})
-          </p>
-        </div>
+    <CardWrapper className="cursor-pointer group">
+      <img
+        src={ophimService.getImageUrl(movie.thumb_url)}
+        alt={movie.name}
+        className="w-full h-full object-cover"
+        loading="lazy"
+        decoding="async"
+        onError={(e) => {
+          const target = e.target as HTMLImageElement;
+          if (target.src !== 'https://via.placeholder.com/300x450?text=No+Image') {
+            target.src = 'https://via.placeholder.com/300x450?text=No+Image';
+          }
+        }}
+      />
+      
+      {/* Quality & Lang Badges */}
+      <div className="absolute top-2 right-2 flex flex-col items-end gap-1 z-5">
+        <span className="bg-red-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-lg backdrop-blur-sm">
+          {movie.quality}
+        </span>
+        <span className="bg-black/70 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-lg backdrop-blur-sm">
+          {movie.lang}
+        </span>
       </div>
-    </div>
+
+      {/* Center play button */}
+      <div className="overlay">
+        <MovieCardPlayButton onClick={handlePlayClick} />
+      </div>
+
+      {/* Info section */}
+      <div className="info-section">
+        <MovieCardTitle title={movie.name} />
+        
+        <p className="text-gray-400 text-xs line-clamp-1 mb-2">
+          {movie.origin_name} ({movie.year})
+        </p>
+
+        <MovieCardButtonGroup>
+          <MovieCardPrimaryButton onClick={handlePlayClick}>
+            <Play className="w-4 h-4" />
+            <span>Play</span>
+          </MovieCardPrimaryButton>
+          
+          <MovieCardIconButton onClick={handleMoreInfo} title="More Info">
+            <Info className="w-4 h-4 text-white" />
+          </MovieCardIconButton>
+        </MovieCardButtonGroup>
+      </div>
+    </CardWrapper>
   );
 }
