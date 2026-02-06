@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Play, Plus, ThumbsUp, ChevronDown, Info } from 'lucide-react';
+import { Play, Plus, ThumbsUp, ChevronDown } from 'lucide-react';
 import { ophimService } from '../../services/ophimService';
 import { toast } from 'react-hot-toast';
 
