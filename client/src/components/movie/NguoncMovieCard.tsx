@@ -24,8 +24,12 @@ export default function NguoncMovieCard({ movie }: NguoncMovieCardProps) {
           alt={movie.name}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           loading="lazy"
+          decoding="async"
           onError={(e) => {
-            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x450?text=No+Image';
+            const target = e.target as HTMLImageElement;
+            if (target.src !== 'https://via.placeholder.com/300x450?text=No+Image') {
+              target.src = 'https://via.placeholder.com/300x450?text=No+Image';
+            }
           }}
         />
         

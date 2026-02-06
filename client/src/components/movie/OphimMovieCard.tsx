@@ -87,8 +87,12 @@ export default function OphimMovieCard({ movie }: OphimMovieCardProps) {
           alt={movie.name}
           className="movie-card-image w-full h-full object-cover"
           loading="lazy"
+          decoding="async"
           onError={(e) => {
-            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x450?text=No+Image';
+            const target = e.target as HTMLImageElement;
+            if (target.src !== 'https://via.placeholder.com/300x450?text=No+Image') {
+              target.src = 'https://via.placeholder.com/300x450?text=No+Image';
+            }
           }}
         />
         

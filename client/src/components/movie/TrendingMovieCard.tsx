@@ -26,8 +26,13 @@ export default function TrendingMovieCard({ movie, rank, onAddToWatchlist }: Tre
           src={`http://localhost:5001${movie.thumbnail}`}
           alt={movie.title}
           className="w-full h-full object-cover rounded-md shadow-lg"
+          loading="lazy"
+          decoding="async"
           onError={(e) => {
-            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x450?text=No+Image';
+            const target = e.target as HTMLImageElement;
+            if (target.src !== 'https://via.placeholder.com/300x450?text=No+Image') {
+              target.src = 'https://via.placeholder.com/300x450?text=No+Image';
+            }
           }}
         />
 

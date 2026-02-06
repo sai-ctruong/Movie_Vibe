@@ -15,13 +15,6 @@ export default function OphimMovieDetail() {
   });
 
   const movie = data?.data?.item;
-  const cdnImage = data?.data?.APP_DOMAIN_CDN_IMAGE || 'https://img.ophim.live';
-
-  const getImageUrl = (path: string) => {
-    if (!path) return 'https://via.placeholder.com/300x450';
-    if (path.startsWith('http')) return path;
-    return `${cdnImage}/uploads/movies/${path}`;
-  };
 
   const handleWatch = () => {
     if (movie?.episodes?.[0]?.server_data?.[0]) {
@@ -31,7 +24,9 @@ export default function OphimMovieDetail() {
     }
   };
 
-  const backdropUrl = movie?.poster_url ? getImageUrl(movie.poster_url) : getImageUrl(movie?.thumb_url || '');
+  const backdropUrl = movie?.poster_url 
+    ? ophimService.getImageUrl(movie.poster_url) 
+    : ophimService.getImageUrl(movie?.thumb_url || '');
 
   if (isLoading) {
     return (
@@ -80,9 +75,17 @@ export default function OphimMovieDetail() {
            <div className="md:col-span-4 lg:col-span-3">
               <div className="relative aspect-[2/3] rounded-xl overflow-hidden shadow-2xl border border-gray-800 group">
                  <img 
-                   src={getImageUrl(movie.thumb_url)} 
+                   src={ophimService.getImageUrl(movie.thumb_url)} 
                    alt={movie.name}
                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                   loading="lazy"
+                   decoding="async"
+                   onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      if (target.src !== 'https://via.placeholder.com/300x450?text=No+Image') {
+                         target.src = 'https://via.placeholder.com/300x450?text=No+Image';
+                      }
+                   }}
                  />
                  <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded shadow">
                     {movie.quality}

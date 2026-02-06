@@ -17,8 +17,13 @@ export default function MovieCard({ movie, onAddToWatchlist }: MovieCardProps) {
           src={`http://localhost:5001${movie.thumbnail}`}
           alt={movie.title}
           className="w-full h-full object-cover rounded-md"
+          loading="lazy"
+          decoding="async"
           onError={(e) => {
-            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x450?text=No+Image';
+            const target = e.target as HTMLImageElement;
+            if (target.src !== 'https://via.placeholder.com/300x450?text=No+Image') {
+              target.src = 'https://via.placeholder.com/300x450?text=No+Image';
+            }
           }}
         />
         

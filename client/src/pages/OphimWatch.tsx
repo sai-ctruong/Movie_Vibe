@@ -110,9 +110,17 @@ export default function OphimWatch() {
                {/* Vertical Poster (Hidden on mobile to save space, visible on MD) */}
                <div className="w-[160px] shrink-0 hidden md:block rounded-xl overflow-hidden shadow-2xl border border-gray-800">
                   <img 
-                     src={`${movieData?.data?.APP_DOMAIN_CDN_IMAGE}/${movie.poster_url}`} 
+                     src={ophimService.getImageUrl(movie.thumb_url || movie.poster_url)} 
                      alt={movie.name}
-                     className="w-full h-full object-cover aspect-[2/3]" 
+                     className="w-full h-full object-cover aspect-[2/3]"
+                     loading="lazy"
+                     decoding="async"
+                     onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        if (target.src !== 'https://via.placeholder.com/300x450?text=No+Image') {
+                           target.src = 'https://via.placeholder.com/300x450?text=No+Image';
+                        }
+                     }}
                   />
                </div>
 

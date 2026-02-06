@@ -56,6 +56,14 @@ export default function MovieHoverCard({ movie, onMouseLeave, onMouseEnter, styl
           src={imageUrl} 
           alt={movie.name} 
           className="w-full h-full object-cover"
+          loading="lazy"
+          decoding="async"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            if (target.src !== 'https://via.placeholder.com/400x225?text=No+Image') {
+              target.src = 'https://via.placeholder.com/400x225?text=No+Image';
+            }
+          }}
         />
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#181818] via-transparent to-transparent" />

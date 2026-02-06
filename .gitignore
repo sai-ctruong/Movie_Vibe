@@ -1,26 +1,33 @@
 # Dependencies
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+*/node_modules/
 
 # Environment variables
 .env
 .env.local
-.env.development.local
-.env.test.local
+.env.development
 .env.production.local
+.env.test
+server/.env
+client/.env.local
 
 # Build outputs
 dist/
 build/
-*.tsbuildinfo
+*/dist/
+*/build/
 
-# Uploads
-uploads/
-*.mp4
-*.avi
-*.mkv
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
 
 # IDE
 .vscode/
@@ -29,17 +36,30 @@ uploads/
 *.swo
 *~
 
-# OS
-.DS_Store
-Thumbs.db
-
-# Logs
-logs/
-*.log
-
 # Testing
 coverage/
+.nyc_output/
+
+# Uploads
+uploads/
+server/uploads/
 
 # Temporary files
-tmp/
-temp/
+*.tmp
+.cache/
+
+# TypeScript
+*.tsbuildinfo
+
+# Redis dump
+dump.rdb
+
+# MongoDB
+data/
+
+# Vercel
+.vercel
+
+# Misc
+.eslintcache
+.prettierignore

@@ -1,17 +1,33 @@
 
+import { lazy, Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { movieService } from '../services/movieService';
 import { nguoncService } from '../services/nguoncService';
 import { ophimService } from '../services/ophimService';
-import MovieRow from '../components/movie/MovieRow';
-import TrendingRow from '../components/movie/TrendingRow';
-import NguoncMovieRow from '../components/movie/NguoncMovieRow';
-import OphimMovieRow from '../components/movie/OphimMovieRow';
-import HeroBanner from '../components/HeroBanner';
-import Top10Row from '../components/movie/Top10Row'; // Added this import
 import { Clock, Film, Clapperboard, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+
+// Lazy load heavy components
+const MovieRow = lazy(() => import('../components/movie/MovieRow'));
+const TrendingRow = lazy(() => import('../components/movie/TrendingRow'));
+const NguoncMovieRow = lazy(() => import('../components/movie/NguoncMovieRow'));
+const OphimMovieRow = lazy(() => import('../components/movie/OphimMovieRow'));
+const HeroBanner = lazy(() => import('../components/HeroBanner'));
+const Top10Row = lazy(() => import('../components/movie/Top10Row'));
+
+// Loading component for lazy loaded sections
+const SectionLoader = () => (
+  <div className="px-4 md:px-12 py-4">
+    <div className="h-8 w-48 shimmer rounded mb-4" />
+    <div className="flex space-x-4">
+      {[...Array(6)].map((_, i) => (
+        <div key={i} className="w-48 h-72 shimmer rounded" />
+      ))}
+    </div>
+  </div>
+);
+
 export default function Home() {
   const navigate = useNavigate();
 
@@ -115,7 +131,9 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-netflix-black">
       {/* Premium Hero Banner (from OPhim Latest) */}
-      <HeroBanner movies={ophimLatest?.data?.items || []} />
+      <Suspense fallback={<div className="h-[85vh] shimmer" />}>
+        <HeroBanner movies={ophimLatest?.data?.items || []} />
+      </Suspense>
 
       {/* Movie Rows Container */}
       <div className="-mt-12 md:-mt-24 relative z-10 pb-16 space-y-8 md:space-y-12">
@@ -166,111 +184,117 @@ export default function Home() {
         )}
 
         {/* ============ VIP SECTION (OPHIM) ============ */}
-        <div className="space-y-8 animate-fade-in-up">
-            <div className="px-4 md:px-12 mb-2">
-                <span className="text-green-500 text-xs font-bold tracking-widest border border-green-500/30 px-2 py-1 rounded bg-green-500/10">
-                    <i className="fas fa-crown mr-2"></i>
-                    VIP ACCESS • TỐC ĐỘ CAO • KHÔNG QUẢNG CÁO
-                </span>
-            </div>
-            
-            {/* Top 10 Row */}
-             <Top10Row 
-               title="Top 10 Phim Bộ Hôm Nay"
-               movies={ophimLatest?.data?.items?.slice(0, 10) || []}
-               isLoading={ophimLatestLoading}
-             />
+        <Suspense fallback={<SectionLoader />}>
+          <div className="space-y-8 animate-fade-in-up">
+              <div className="px-4 md:px-12 mb-2">
+                  <span className="text-green-500 text-xs font-bold tracking-widest border border-green-500/30 px-2 py-1 rounded bg-green-500/10">
+                      <i className="fas fa-crown mr-2"></i>
+                      VIP ACCESS • TỐC ĐỘ CAO • KHÔNG QUẢNG CÁO
+                  </span>
+              </div>
+              
+              {/* Top 10 Row */}
+               <Top10Row 
+                 title="Top 10 Phim Bộ Hôm Nay"
+                 movies={ophimLatest?.data?.items?.slice(0, 10) || []}
+                 isLoading={ophimLatestLoading}
+               />
 
-            <OphimMovieRow
-            title="Phim Mới Cập Nhật VIP"
-            movies={ophimLatest?.data?.items || []}
-            isLoading={ophimLatestLoading}
-            icon={<i className="fas fa-bolt text-green-500 text-xl" />}
-            />
+              <OphimMovieRow
+              title="Phim Mới Cập Nhật VIP"
+              movies={ophimLatest?.data?.items || []}
+              isLoading={ophimLatestLoading}
+              icon={<i className="fas fa-bolt text-green-500 text-xl" />}
+              />
 
-            {/* Phim Việt Nam (Requested) */}
-            <OphimMovieRow
-            title="Phim Việt Nam Đặc Sắc"
-            movies={ophimVietnam?.data?.items || []}
-            isLoading={ophimVietnamLoading}
-            icon={<i className="fas fa-star text-red-600 text-xl" />}
-            />
+              {/* Phim Việt Nam (Requested) */}
+              <OphimMovieRow
+              title="Phim Việt Nam Đặc Sắc"
+              movies={ophimVietnam?.data?.items || []}
+              isLoading={ophimVietnamLoading}
+              icon={<i className="fas fa-star text-red-600 text-xl" />}
+              />
 
-            <OphimMovieRow
-            title="Phim Lẻ Chọn Lọc"
-            movies={ophimSingle?.data?.items || []}
-            isLoading={ophimSingleLoading}
-            icon={<i className="fas fa-film text-emerald-500 text-xl" />}
-            />
+              <OphimMovieRow
+              title="Phim Lẻ Chọn Lọc"
+              movies={ophimSingle?.data?.items || []}
+              isLoading={ophimSingleLoading}
+              icon={<i className="fas fa-film text-emerald-500 text-xl" />}
+              />
 
-            <OphimMovieRow
-            title="Series Phim Bộ Hot"
-            movies={ophimSeries?.data?.items || []}
-            isLoading={ophimSeriesLoading}
-            icon={<i className="fas fa-tv text-teal-500 text-xl" />}
-            />
-             
-            <OphimMovieRow
-            title="Anime & Hoạt Hình"
-            movies={ophimAnime?.data?.items || []}
-            isLoading={ophimAnimeLoading}
-            icon={<Clapperboard className="w-5 h-5 text-cyan-500" />}
-            />
-        </div>
+              <OphimMovieRow
+              title="Series Phim Bộ Hot"
+              movies={ophimSeries?.data?.items || []}
+              isLoading={ophimSeriesLoading}
+              icon={<i className="fas fa-tv text-teal-500 text-xl" />}
+              />
+               
+              <OphimMovieRow
+              title="Anime & Hoạt Hình"
+              movies={ophimAnime?.data?.items || []}
+              isLoading={ophimAnimeLoading}
+              icon={<Clapperboard className="w-5 h-5 text-cyan-500" />}
+              />
+          </div>
+        </Suspense>
 
 
         {/* ============ DIVERSE SECTION (NGUONC) ============ */}
-        <div className="space-y-8 animate-fade-in-up delay-200 border-t border-gray-800/50 pt-8">
-            <div className="px-4 md:px-12 mb-2">
-                 <span className="text-blue-500 text-xs font-bold tracking-widest border border-blue-500/30 px-2 py-1 rounded bg-blue-500/10">
-                    <i className="fas fa-layer-group mr-2"></i>
-                    KHO PHIM TỔNG HỢP • CÓ THỂ CÓ QUẢNG CÁO
-                </span>
-            </div>
-          
-          <NguoncMovieRow
-            title="Tuyển Tập Mới (NguonC)"
-            movies={nguoncLatest?.items || []}
-            isLoading={nguoncLatestLoading}
-            icon={<i className="fas fa-fire text-orange-500 text-xl" />}
-          />
+        <Suspense fallback={<SectionLoader />}>
+          <div className="space-y-8 animate-fade-in-up delay-200 border-t border-gray-800/50 pt-8">
+              <div className="px-4 md:px-12 mb-2">
+                   <span className="text-blue-500 text-xs font-bold tracking-widest border border-blue-500/30 px-2 py-1 rounded bg-blue-500/10">
+                      <i className="fas fa-layer-group mr-2"></i>
+                      KHO PHIM TỔNG HỢP • CÓ THỂ CÓ QUẢNG CÁO
+                  </span>
+              </div>
+            
+            <NguoncMovieRow
+              title="Tuyển Tập Mới (NguonC)"
+              movies={nguoncLatest?.items || []}
+              isLoading={nguoncLatestLoading}
+              icon={<i className="fas fa-fire text-orange-500 text-xl" />}
+            />
 
-          <NguoncMovieRow
-            title="Phim Lẻ Đa Dạng"
-            movies={nguoncSingle?.items || []}
-            isLoading={nguoncSingleLoading}
-            icon={<i className="fas fa-mask text-blue-500 text-xl" />}
-          />
-        </div>
+            <NguoncMovieRow
+              title="Phim Lẻ Đa Dạng"
+              movies={nguoncSingle?.items || []}
+              isLoading={nguoncSingleLoading}
+              icon={<i className="fas fa-mask text-blue-500 text-xl" />}
+            />
+          </div>
+        </Suspense>
 
 
         {/* ============ LOCAL DB SECTION ============ */}
-        <div className="space-y-8 border-t border-gray-800/50 pt-8">
-            <div className="px-4 md:px-12 mb-2">
-                 <span className="text-red-500 text-xs font-bold tracking-widest border border-red-500/30 px-2 py-1 rounded bg-red-500/10">
-                    <i className="fas fa-database mr-2"></i>
-                    THƯ VIỆN CÁ NHÂN • UPLOADED
-                </span>
-            </div>
+        <Suspense fallback={<SectionLoader />}>
+          <div className="space-y-8 border-t border-gray-800/50 pt-8">
+              <div className="px-4 md:px-12 mb-2">
+                   <span className="text-red-500 text-xs font-bold tracking-widest border border-red-500/30 px-2 py-1 rounded bg-red-500/10">
+                      <i className="fas fa-database mr-2"></i>
+                      THƯ VIỆN CÁ NHÂN • UPLOADED
+                  </span>
+              </div>
 
-            {/* Trending Now - Top 10 */}
-            {moviesData?.movies && moviesData.movies.length > 0 && (
-            <TrendingRow
-                title="Trending Now"
-                movies={moviesData.movies}
-                onAddToWatchlist={handleAddToWatchlist}
-            />
-            )}
+              {/* Trending Now - Top 10 */}
+              {moviesData?.movies && moviesData.movies.length > 0 && (
+              <TrendingRow
+                  title="Trending Now"
+                  movies={moviesData.movies}
+                  onAddToWatchlist={handleAddToWatchlist}
+              />
+              )}
 
-            {/* Recently Added */}
-            {recentMovies?.movies && recentMovies.movies.length > 0 && (
-            <MovieRow
-                title="Mới Thêm Vào Server"
-                movies={recentMovies.movies}
-                onAddToWatchlist={handleAddToWatchlist}
-            />
-            )}
-        </div>
+              {/* Recently Added */}
+              {recentMovies?.movies && recentMovies.movies.length > 0 && (
+              <MovieRow
+                  title="Mới Thêm Vào Server"
+                  movies={recentMovies.movies}
+                  onAddToWatchlist={handleAddToWatchlist}
+              />
+              )}
+          </div>
+        </Suspense>
 
         {/* Quick Actions Footer */}
         <div className="mt-8 px-4 md:px-12 pb-12">
