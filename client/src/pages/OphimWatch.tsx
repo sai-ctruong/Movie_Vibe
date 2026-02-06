@@ -48,8 +48,8 @@ export default function OphimWatch() {
   return (
     <div className="min-h-screen bg-[#0f172a] text-gray-200 font-sans pb-12">
       {/* ============ PLAYER SECTION ============ */}
-      <section className="w-full bg-black shadow-2xl">
-         <div className="w-full max-w-[1600px] mx-auto aspect-video max-h-[75vh] bg-black">
+      <section className="w-full bg-black shadow-2xl pt-16 md:pt-20">
+         <div className="w-full max-w-[1600px] mx-auto aspect-video max-h-[60vh] bg-black pb-4">
             {currentEpData ? (
                <VideoPlayer
                   episode={currentEpData}

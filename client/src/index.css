@@ -48,6 +48,33 @@
     @apply bg-netflix-darkGray;
   }
 
+  /* Fullscreen landscape for iOS */
+  @media screen and (max-width: 768px) {
+    .fullscreen-landscape {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      z-index: 9999 !important;
+    }
+    
+    /* Force landscape orientation using CSS transform for iOS */
+    @media (orientation: portrait) {
+      .fullscreen-landscape {
+        transform: rotate(90deg);
+        transform-origin: center center;
+        width: 100vh !important;
+        height: 100vw !important;
+      }
+    }
+  }
+
+  /* Video player container */
+  .video-player-container {
+    transition: transform 0.3s ease;
+  }
+
   .custom-scrollbar::-webkit-scrollbar-thumb {
     @apply bg-netflix-gray rounded-full hover:bg-netflix-lightGray;
   }
