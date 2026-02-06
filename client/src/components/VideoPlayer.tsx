@@ -282,13 +282,35 @@ export default function VideoPlayer({ episode, onError, onSuccess }: VideoPlayer
   const toggleFullscreen = () => {
     if (!containerRef.current) return;
 
-    if (!document.fullscreenElement) {
-      containerRef.current.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
-    }
+    const el: any = containerRef.current;
+    const doc: any = document;
+
+    (async () => {
+      try {
+        if (!doc.fullscreenElement && !doc.webkitFullscreenElement) {
+          // Prefer standard API
+          if (el.requestFullscreen) {
+            await el.requestFullscreen();
+          } else if (el.webkitRequestFullscreen) {
+            // Safari / older WebKit
+            el.webkitRequestFullscreen();
+          } else if (videoRef.current && (videoRef.current as any).webkitEnterFullscreen) {
+            // iOS Safari: request video fullscreen
+            (videoRef.current as any).webkitEnterFullscreen();
+          }
+          setIsFullscreen(true);
+        } else {
+          if (doc.exitFullscreen) {
+            await doc.exitFullscreen();
+          } else if (doc.webkitExitFullscreen) {
+            doc.webkitExitFullscreen();
+          }
+          setIsFullscreen(false);
+        }
+      } catch (err) {
+        console.error('Fullscreen toggle error:', err);
+      }
+    })();
   };
 
   // Picture-in-Picture toggle

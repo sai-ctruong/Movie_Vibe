@@ -49,7 +49,7 @@ const CardWrapper = styled.div`
       transparent 100%
     );
     pointer-events: none;
-    z-index: 20;
+    z-index: 0;
     transform: skewX(-20deg);
   }
 
@@ -76,7 +76,7 @@ const CardWrapper = styled.div`
     align-items: center;
     justify-content: center;
     border-radius: 0.5rem;
-    z-index: 10;
+    z-index: 20;
   }
 
   &:hover .overlay {
@@ -101,6 +101,20 @@ const CardWrapper = styled.div`
   &:hover .info-section {
     opacity: 1;
     transform: translateY(0);
+  }
+
+  /* Reveal play button when the whole card (group) is hovered */
+  &:hover .play-button {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  &:hover .play-button .arr-1 {
+    right: -25%;
+  }
+
+  &:hover .play-button .arr-2 {
+    left: 16px;
   }
 `;
 

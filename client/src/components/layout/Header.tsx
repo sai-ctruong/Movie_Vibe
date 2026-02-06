@@ -14,6 +14,7 @@ export default function Header() {
   const searchRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const user = authService.getCurrentUser();
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -141,6 +142,14 @@ export default function Header() {
 
         {/* Search and Profile */}
         <div className="flex items-center space-x-4">
+          {/* Mobile search button */}
+          <button
+            onClick={() => setShowMobileSearch(true)}
+            className="text-white hover:text-gray-300 transition md:hidden"
+            aria-label="Open search"
+          >
+            <Search className="w-6 h-6" />
+          </button>
           {/* Enhanced Search */}
           <div ref={searchRef} className="relative hidden md:block">
             <form onSubmit={handleSearch} className="flex items-center">
@@ -274,6 +283,39 @@ export default function Header() {
             )}
           </div>
         </div>
+        {/* Mobile search overlay */}
+        {showMobileSearch && (
+          <div className="fixed inset-0 z-50 md:hidden">
+            <div className="absolute inset-0 bg-black/70" onClick={() => setShowMobileSearch(false)} />
+            <div className="relative p-4">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (searchQuery.trim()) {
+                    if (searchSource === 'ophim') navigate(`/ophim/search?q=${encodeURIComponent(searchQuery)}`);
+                    else navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+                    setSearchQuery('');
+                    setShowSearchDropdown(false);
+                    setShowMobileSearch(false);
+                  }
+                }}
+                className="flex items-center bg-gray-900/90 border border-gray-700 rounded-lg p-2"
+              >
+                <Search className="w-5 h-5 text-gray-400 mr-2" />
+                <input
+                  autoFocus
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={searchSource === 'ophim' ? 'Tìm phim không QC...' : 'Tìm phim local...'}
+                  className="bg-transparent flex-1 outline-none text-white"
+                />
+                <button type="button" onClick={() => setShowMobileSearch(false)} className="ml-2 text-gray-400">
+                  <X className="w-5 h-5" />
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );
