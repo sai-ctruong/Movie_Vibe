@@ -11,6 +11,9 @@ export function useMovies(params?: {
   return useQuery({
     queryKey: ['movies', params],
     queryFn: () => movieService.getMovies(params),
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
+    gcTime: 10 * 60 * 1000, // 10 minutes garbage collection (formerly cacheTime)
+    placeholderData: (previousData) => previousData, // Keep previous data while fetching
   });
 }
 
@@ -19,6 +22,8 @@ export function useMovie(id: string) {
     queryKey: ['movie', id],
     queryFn: () => movieService.getMovieById(id),
     enabled: !!id,
+    staleTime: 10 * 60 * 1000, // 10 minutes cache
+    gcTime: 15 * 60 * 1000, // 15 minutes garbage collection
   });
 }
 
@@ -72,6 +77,8 @@ export function useWatchHistory(params?: { page?: number; limit?: number }) {
   return useQuery({
     queryKey: ['watch-history', params],
     queryFn: () => movieService.getWatchHistory(params),
+    staleTime: 2 * 60 * 1000, // 2 minutes cache
+    gcTime: 5 * 60 * 1000, // 5 minutes garbage collection
   });
 }
 
@@ -79,5 +86,7 @@ export function useUserProfile() {
   return useQuery({
     queryKey: ['user-profile'],
     queryFn: () => movieService.getUserProfile(),
+    staleTime: 3 * 60 * 1000, // 3 minutes cache
+    gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
   });
 }

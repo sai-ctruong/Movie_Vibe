@@ -13,6 +13,7 @@ import {
   Gauge
 } from 'lucide-react';
 import { videoService, VideoSource } from '../services/videoService';
+import MovieLoader from './MovieLoader';
 
 interface VideoPlayerProps {
   episode: any;
@@ -31,6 +32,7 @@ export default function VideoPlayer({ episode, onError, onSuccess }: VideoPlayer
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loadingMessage, setLoadingMessage] = useState('Đang khởi tạo...');
+  const [isBuffering, setIsBuffering] = useState(false);
   
   // UI State
   const [isPlaying, setIsPlaying] = useState(false);
@@ -43,6 +45,7 @@ export default function VideoPlayer({ episode, onError, onSuccess }: VideoPlayer
   const [playbackRate, setPlaybackRate] = useState(1);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const controlsTimeoutRef = useRef<NodeJS.Timeout>();
+  const bufferingTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Available playback speeds
   const PLAYBACK_SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2];
@@ -217,6 +220,16 @@ export default function VideoPlayer({ episode, onError, onSuccess }: VideoPlayer
     if (videoRef.current) {
       videoRef.current.currentTime = time;
       setCurrentTime(time);
+      // Show buffering indicator when seeking
+      setIsBuffering(true);
+      // Clear previous timeout
+      if (bufferingTimeoutRef.current) {
+        clearTimeout(bufferingTimeoutRef.current);
+      }
+      // Hide buffering after 2 seconds (or when video is ready)
+      bufferingTimeoutRef.current = setTimeout(() => {
+        setIsBuffering(false);
+      }, 2000);
     }
   };
 
@@ -225,6 +238,13 @@ export default function VideoPlayer({ episode, onError, onSuccess }: VideoPlayer
       const newTime = Math.min(videoRef.current.currentTime + seconds, videoRef.current.duration);
       videoRef.current.currentTime = newTime;
       setCurrentTime(newTime);
+      setIsBuffering(true);
+      if (bufferingTimeoutRef.current) {
+        clearTimeout(bufferingTimeoutRef.current);
+      }
+      bufferingTimeoutRef.current = setTimeout(() => {
+        setIsBuffering(false);
+      }, 2000);
     }
   };
 
@@ -233,6 +253,13 @@ export default function VideoPlayer({ episode, onError, onSuccess }: VideoPlayer
       const newTime = Math.max(videoRef.current.currentTime - seconds, 0);
       videoRef.current.currentTime = newTime;
       setCurrentTime(newTime);
+      setIsBuffering(true);
+      if (bufferingTimeoutRef.current) {
+        clearTimeout(bufferingTimeoutRef.current);
+      }
+      bufferingTimeoutRef.current = setTimeout(() => {
+        setIsBuffering(false);
+      }, 2000);
     }
   };
 
@@ -304,6 +331,8 @@ export default function VideoPlayer({ episode, onError, onSuccess }: VideoPlayer
     initializeVideo();
     return () => {
       if (hlsRef.current) hlsRef.current.destroy();
+      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+      if (bufferingTimeoutRef.current) clearTimeout(bufferingTimeoutRef.current);
     };
   }, [initializeVideo]);
 
@@ -419,15 +448,18 @@ export default function VideoPlayer({ episode, onError, onSuccess }: VideoPlayer
             onClick={togglePlay}
           />
           
-          {/* Buffering Spinner */}
-          {isLoading && (
+          {/* Buffering/Loading Spinner */}
+          {(isLoading || isBuffering) && (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 pointer-events-none z-20">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+              <MovieLoader size="md" />
               {loadingMessage && (
-                  <p className="absolute mt-20 text-white font-medium shadow-black drop-shadow-md">{loadingMessage}</p>
+                  <p className="absolute mt-40 text-white font-medium shadow-black drop-shadow-md">{loadingMessage}</p>
               )}
-              {!loadingMessage && (
-                  <p className="absolute mt-20 text-white font-medium shadow-black drop-shadow-md">Đang tải...</p>
+              {!loadingMessage && isLoading && (
+                  <p className="absolute mt-40 text-white font-medium shadow-black drop-shadow-md">Đang tải...</p>
+              )}
+              {isBuffering && !loadingMessage && (
+                  <p className="absolute mt-40 text-white font-medium shadow-black drop-shadow-md">Phim đang load chờ xíu má...</p>
               )}
             </div>
           )}
